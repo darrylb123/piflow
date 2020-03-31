@@ -21,7 +21,7 @@ $ cd ..
 $ build
 ```
 
-The resulting program is called flow.
+The resulting program is called piflow.
 flow requires the following argumants:
  -t Timeout in seconds (The program will exit when this timeout is exceeded)
  -p Pulses per litre ( Calibration constant for the particular flowmeter )
@@ -36,7 +36,7 @@ Run flow with the flow meter connected with estimated arguments. Fill a known ca
 THe program will exit when the timeout occurs and display the number of pulses counted. Divide the number of pulses counted by the number of litres and you have the pulses per litre. Round the number to the nearest whole number and you have it.
 
 eg 
-$ flow -t 1000 -p 200 -l 200 -m 1000 #  1000 seconds or 200 litres  max 1000 l/m
+$ piflow -t 1000 -p 200 -l 200 -m 1000 #  1000 seconds or 200 litres  max 1000 l/m
 Turn on the water
 Turn off the water when full
 
