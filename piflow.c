@@ -102,7 +102,7 @@ int main( int argc, char *argv[] ) {
         while (1) {
             int ret = pifacedigital_wait_for_input(&inputs, 20000, hw_addr);
             if ( !ret ) {
-                fprintf(stderr,"Timeout, %d pulses\nExiting, there is no flow",count );
+                fprintf(stderr,"Timeout, %d pulses\n there is no flow\n",count );
 //                break;
             } else {
                 if ( inputs == pin ) {
