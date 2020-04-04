@@ -6,7 +6,6 @@
 #include "pifacedigital.h"
 
 int main( int argc, char *argv[] ) {
-    uint8_t i = 0;     /**< Loop iterator */
     uint8_t inputs;    /**< Input bits (pins 0-7) */
     uint8_t pin = 0x7f;     /** Pin 7 is connected to the flowmeter */
     int hw_addr = 0;   /**< PiFaceDigital hardware address  */
@@ -137,4 +136,5 @@ int main( int argc, char *argv[] ) {
     * Close the connection to the PiFace Digital
     */
     pifacedigital_close(hw_addr);
+    return(0);
 }
