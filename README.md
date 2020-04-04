@@ -12,13 +12,7 @@ $ git clone https://github.com/darrylb123/piflow.git
 $ cd piflow
 $ git clone https://github.com/piface/libpifacedigital.git
 $ git clone https://github.com/piface/libmcp23s17.git
-
-$ cd libpifacedigital
 $ make
-$ cd ../libmcp23s17
-$ make
-$ cd ..
-$ build
 ```
 
 The resulting program is called piflow.
