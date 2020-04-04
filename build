@@ -1,3 +1,0 @@
-#/bin/sh
-PIFACE=`pwd`
-gcc -o piflow piflow.c -I$PIFACE/libpifacedigital/src -L$PIFACE/libpifacedigital -lpifacedigital -L$PIFACE/libmcp23s17 -lmcp23s17 
