@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <ctype.h>
+#include <string.h>
 #include "pifacedigital.h"
 
 int main( int argc, char *argv[] ) {
@@ -12,17 +13,26 @@ int main( int argc, char *argv[] ) {
     int intenable = 1; /**< Whether or not interrupts are enabled  */
     int count = 0;
     int lastcount = 0;
+    int seccount = 0;
     int litres = 1000;
     int maxflow = 1000; // maximum flow checking
     int flowexceeded = 0;
+    int flowmaxtime = 10;
+    char nameBuff[32];
+    FILE* liveflow; //Temp file to write live flow rate
     int index;
     int c;
     int ppl = 500; /* Pulses per litre */
     time_t timeout = 60; /** Default 60 seconds timeout */
     time_t start;
     time_t lastmin;
+    time_t now;
+    time_t lastsec = 0;
     char * piface;
     opterr = 0;
+   
+    memset(nameBuff,0,sizeof(nameBuff));
+    strncpy(nameBuff,"/tmp/flowtemp-XXXXXX",21); 
     while ((c = getopt (argc, argv, "l:t:p:m:")) != -1){
         switch (c) {
             case 't':
@@ -78,6 +88,11 @@ int main( int argc, char *argv[] ) {
     */
     pifacedigital_open(hw_addr);
 
+    // Open temp file for live flow updates
+    int fd = mkstemp(nameBuff);
+    liveflow = fdopen(fd,"wb+");
+    fprintf(stderr,"TEMPNAME=%s\n",nameBuff);
+
 
     /**
     * Enable interrupt processing (only required for all
@@ -107,7 +122,15 @@ int main( int argc, char *argv[] ) {
                 if ( inputs == pin ) {
                     count++;
                     pifacedigital_digital_write(7,!pifacedigital_read_bit(7, OUTPUT, 0));
-                    if ( time(NULL) > lastmin + 60 ) {
+                    now = time(NULL);
+                    if (now > lastsec + 10) {
+                        if (liveflow != NULL)
+                        	fprintf(liveflow,"%f\n",((float)(count-seccount)/ppl)*6);
+                        lastsec = now;
+                        seccount = count;
+                        rewind(liveflow);
+                    }
+                    if ( now > lastmin + 60 ) {
 			float flow;
 			flow  = (float)(count-lastcount)/(float)ppl;
                         fprintf(stderr,"%-10.2f %d %d %d %3.1f %d\n",
@@ -119,14 +142,28 @@ int main( int argc, char *argv[] ) {
 				flowexceeded++;
 			} else {
 				flowexceeded = 0;
+				flowmaxtime = 4; //reset the allowed high flow time to a lower bar
 			}
 
                     }
 
                 }
             }
-            if ( time(NULL) > timeout || count > litres || flowexceeded > 4) 
+/*            if ( time(NULL) > timeout || count > litres || flowexceeded > 4) 
+                break; */
+	    if ( time(NULL) > timeout ) {
+		fprintf(stderr,"Time Exceeded\n");
+		break;
+	    }
+	    if ( count > litres ) {
+                fprintf(stderr,"Target litres reached\n");
                 break;
+            }
+	    if ( flowexceeded > flowmaxtime ) {
+                fprintf(stderr,"Flow rate exceeded\n");
+                break;
+            }
+
         }
         printf("TIME=%-10.2f\nPULSES=%d\nTOTAL=%-10.2f\nLPM=%-10.2f\nPPL=%d\n",(float)(time(NULL)-start)/60,count,(float)count/ppl,((float)count/ppl)/((float)(time(NULL)-start)/60),ppl);
         pifacedigital_digital_write(7,0);
@@ -136,5 +173,7 @@ int main( int argc, char *argv[] ) {
     * Close the connection to the PiFace Digital
     */
     pifacedigital_close(hw_addr);
+    if (liveflow != NULL) unlink(nameBuff);
+    
     return(0);
 }
